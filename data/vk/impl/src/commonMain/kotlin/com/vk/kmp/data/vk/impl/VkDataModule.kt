@@ -6,5 +6,7 @@ import org.koin.dsl.module
 
 val vkDataModule = module {
     single { VkHttpClientFactory(get()) }
-    single<WallRepository> { StubWallRepository() }
+    single { get<VkHttpClientFactory>().create() }
+    single { VkApi(get()) }
+    single<WallRepository> { WallRepositoryImpl(get()) }
 }

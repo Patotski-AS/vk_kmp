@@ -11,7 +11,9 @@ data class FeedModel(
     val posts: List<FeedPostItem> = emptyList(),
     val isLoading: Boolean = false,
     val isRefreshing: Boolean = false,
+    val isLoadingMore: Boolean = false,
     val error: String? = null,
+    val nextOffset: Int = 0,
     val endReached: Boolean = false,
 )
 
