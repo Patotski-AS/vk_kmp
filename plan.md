@@ -43,38 +43,43 @@ vk_kmp/
 │   └── impl/                          # SessionManager, refresh, logout, OAuth (desktop)
 │
 ├── data/
-│   ├── storage-api/
-│   ├── storage-impl/
-│   ├── vk-api/                        # DTO, VkApi, repository interfaces
-│   └── vk-impl/                       # Ktor, mappers, WallRepository
+│   ├── storage/
+│   │   ├── api/
+│   │   └── impl/
+│   └── vk/
+│       ├── api/                        # DTO, VkApi, repository interfaces
+│       └── impl/                       # Ktor, mappers, WallRepository
 │
 └── feature/
-    ├── login-api/
-    ├── login-impl/                    # Login UI + platform AuthLauncher
-    ├── main-api/
-    ├── main-impl/                     # shell: tabs, только навигация
-    ├── feed-api/
-    └── feed-impl/                     # первая фича — лента
+    ├── login/
+    │   ├── api/
+    │   └── impl/                       # Login UI + platform AuthLauncher
+    ├── main/
+    │   ├── api/
+    │   └── impl/                       # shell: tabs, только навигация
+    └── feed/
+        ├── api/
+        └── impl/                       # первая фича — лента
 ```
 
 ### Граф зависимостей
 
 ```
 app
- ├─ auth-impl, storage-impl, vk-impl
- ├─ login-impl, main-impl, feed-impl
+ ├─ auth:impl, data:storage:impl, data:vk:impl
+ ├─ feature:login:impl, feature:main:impl, feature:feed:impl
  └─ core:*
 
-login-impl     → login-api, auth-api, core:ui
-main-impl      → main-api, feed-api, auth-api, core:ui
-feed-impl      → feed-api, auth-api, data:vk-api, core:ui
+feature:login:impl  → feature:login:api, auth:api, core:ui
+feature:main:impl   → feature:main:api, feature:feed:api, auth:api, core:ui
+feature:feed:impl   → feature:feed:api, auth:api, data:vk:api, core:ui
 
-auth-impl      → auth-api, storage-api, data:vk-api, core:network
-vk-impl        → vk-api, auth-api, core:network
-storage-impl   → storage-api
+auth:impl           → auth:api, data:storage:api, data:vk:api, core:network
+data:vk:impl        → data:vk:api, auth:api, core:network
+data:storage:impl   → data:storage:api
 
-*-api          → core:common (минимум)
-feature-*-api  → decompose (типы Component)
+*:api               → core:common (минимум)
+feature:*:api       → decompose (типы Component)
 ```
 
 ---
@@ -92,21 +97,21 @@ Auth — **не экран логина**, а инфраструктура се�
 
 ### Платформенная стратегия (гибрид)
 
-| Платформа | Вход | Кто отдаёт токены в auth-impl |
+| Платформа | Вход | Кто отдаёт токены в auth:impl |
 |-----------|------|-------------------------------|
 | Android | VK ID SDK | `PlatformAuthLauncher` (actual) |
 | iOS | VK ID SDK | `PlatformAuthLauncher` (actual) |
 | Desktop | OAuth 2.0 + PKCE в браузере | `OAuthClient` (shared) + `BrowserLauncher` (actual) |
 
-После получения `VkTokens` все платформы вызывают `AuthResultHandler.onLoginSuccess()` — дальше только `auth-impl`.
+После получения `VkTokens` все платформы вызывают `AuthResultHandler.onLoginSuccess()` — дальше только `auth:impl`.
 
 ### Владение токеном
 
 | Слой | Роль |
 |------|------|
-| `storage-impl` | persist: access, refresh, userId, expiresAt |
-| `auth-impl` | валидность, refresh, logout, `SessionState` |
-| `vk-impl` | не хранит токен, берёт через `SessionRepository` |
+| `data:storage:impl` | persist: access, refresh, userId, expiresAt |
+| `auth:impl` | валидность, refresh, logout, `SessionState` |
+| `data:vk:impl` | не хранит токен, берёт через `SessionRepository` |
 
 ---
 
@@ -146,7 +151,7 @@ Logout из любой фичи: `sessionRepository.logout()` → Root авто�
 
 ### MVP
 
-- один таб «Лента» в `main-impl`;
+- один таб «Лента» в `feature:main:impl`;
 - список постов + pull-to-refresh;
 - пагинация при скролле;
 - состояния: Loading / Error / Empty;
@@ -167,10 +172,10 @@ Logout из любой фичи: `sessionRepository.logout()` → Root авто�
 
 | Plugin ID | Модули | Включает |
 |-----------|--------|----------|
-| `vk.kmp.library` | core:*, data:*-api | kmp + android + ios + desktop |
-| `vk.kmp.api` | *-api | минимальный kmp |
+| `vk.kmp.library` | core:*, data:*:api | kmp + android + ios + desktop |
+| `vk.kmp.api` | *:api | минимальный kmp |
 | `vk.cmp.library` | core:ui | compose |
-| `vk.cmp.feature` | feature:*-impl | + compose, mvikotlin, decompose |
+| `vk.cmp.feature` | feature:*:impl | + compose, mvikotlin, decompose |
 | `vk.app` | app | application, все impl |
 
 ---
@@ -200,9 +205,9 @@ modules(
 - Convention plugins
 
 ### Фаза 2 — Auth
-- `storage-impl`: save/load `VkTokens`
-- `auth-impl`: `SessionManager`, `AuthZoneController`, logout
-- `login-impl`: UI + Android VK ID SDK
+- `data:storage:impl`: save/load `VkTokens`
+- `auth:impl`: `SessionManager`, `AuthZoneController`, logout
+- `feature:login:impl`: UI + Android VK ID SDK
 - Root переключает зоны
 
 ### Фаза 3 — iOS + Desktop auth
@@ -211,9 +216,9 @@ modules(
 - `TokenRefresher` + Ktor interceptor
 
 ### Фаза 4 — Лента
-- `vk-impl`: `wall.get`, DTO, mapper
-- `feed-impl`: Store + UI
-- `main-impl`: один таб Feed
+- `data:vk:impl`: `wall.get`, DTO, mapper
+- `feature:feed:impl`: Store + UI
+- `feature:main:impl`: один таб Feed
 - Pull-to-refresh, pagination, error states
 
 ### Фаза 5 — Полировка
@@ -231,7 +236,7 @@ modules(
 | UI | Compose Multiplatform |
 | Архитектура UI/State | Decompose + MVIKotlin |
 | Структура модулей | core / data / feature, api-impl |
-| Auth | Гибрид: VK ID SDK (mobile) + OAuth (desktop) → единый auth-impl |
+| Auth | Гибрид: VK ID SDK (mobile) + OAuth (desktop) → единый auth:impl |
 | Auth-модуль | Токены, refresh, зоны, logout — не UI логина |
 | Main | Тонкий shell, табы = отдельные feature-модули |
 | Первая фича | `feature:feed` — лента через `wall.get` |

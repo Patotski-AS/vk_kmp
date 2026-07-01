@@ -10,10 +10,10 @@ alwaysApply: false
 
 | Plugin ID | Применять к | Что даёт |
 |-----------|-------------|----------|
-| `vk.kmp.library` | `core:*`, `data:*-api` | KMP + android + ios + desktop targets |
-| `vk.kmp.api` | `*-api` | Минимальный KMP |
+| `vk.kmp.library` | `core:*`, `data:*:api` | KMP + android + ios + desktop targets |
+| `vk.kmp.api` | `*:api` | Минимальный KMP |
 | `vk.cmp.library` | `core:ui` | Compose Multiplatform |
-| `vk.cmp.feature` | `feature:*-impl` | + compose, mvikotlin, decompose |
+| `vk.cmp.feature` | `feature:*:impl` | + compose, mvikotlin, decompose |
 | `vk.app` | `app` | Application plugin, все impl |
 
 ## Правила

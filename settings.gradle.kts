@@ -10,6 +10,8 @@ pluginManagement {
         }
         mavenCentral()
         gradlePluginPortal()
+        maven(url = "https://artifactory-external.vkpartner.ru/artifactory/vkid-sdk-android/")
+        maven(url = "https://artifactory-external.vkpartner.ru/artifactory/maven/")
     }
 }
 
@@ -21,6 +23,9 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        maven(url = "https://artifactory-external.vkpartner.ru/artifactory/vkid-sdk-android/")
+        maven(url = "https://artifactory-external.vkpartner.ru/artifactory/maven/")
+        maven(url = "https://artifactory-external.vkpartner.ru/artifactory/vk-id-captcha/android/")
     }
 }
 
@@ -40,14 +45,14 @@ include(":core:network")
 include(":auth:api")
 include(":auth:impl")
 
-include(":data:storage-api")
-include(":data:storage-impl")
-include(":data:vk-api")
-include(":data:vk-impl")
+include(":data:storage:api")
+include(":data:storage:impl")
+include(":data:vk:api")
+include(":data:vk:impl")
 
-include(":feature:login-api")
-include(":feature:login-impl")
-include(":feature:main-api")
-include(":feature:main-impl")
-include(":feature:feed-api")
-include(":feature:feed-impl")
+include(":feature:login:api")
+include(":feature:login:impl")
+include(":feature:main:api")
+include(":feature:main:impl")
+include(":feature:feed:api")
+include(":feature:feed:impl")

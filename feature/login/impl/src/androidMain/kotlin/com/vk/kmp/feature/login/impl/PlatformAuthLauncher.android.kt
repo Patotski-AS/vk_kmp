@@ -1,0 +1,57 @@
+package com.vk.kmp.feature.login.impl
+
+import com.vk.kmp.auth.api.AuthLauncher
+import com.vk.kmp.auth.api.AuthLaunchResult
+import com.vk.kmp.auth.api.VkTokens
+import com.vk.id.AccessToken
+import com.vk.id.VKID
+import com.vk.id.VKIDAuthFail
+import com.vk.id.auth.AuthCodeData
+import com.vk.id.auth.VKIDAuthCallback
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlin.coroutines.resume
+
+internal actual class PlatformAuthLauncher actual constructor() : AuthLauncher {
+    private val stub = StubAuthLauncher()
+
+    override suspend fun launch(): AuthLaunchResult = coroutineScope {
+        if (!VkIdCredentials.isConfigured) {
+            return@coroutineScope stub.launch()
+        }
+
+        suspendCancellableCoroutine { continuation ->
+            val callback = object : VKIDAuthCallback {
+                override fun onAuth(accessToken: AccessToken) {
+                    if (continuation.isActive) {
+                        continuation.resume(AuthLaunchResult.Success(accessToken.toVkTokens()))
+                    }
+                }
+
+                override fun onAuthCode(authCodeData: AuthCodeData, isCompletion: Boolean) = Unit
+
+                override fun onFail(fail: VKIDAuthFail) {
+                    if (!continuation.isActive) return
+                    continuation.resume(
+                        when (fail) {
+                            is VKIDAuthFail.Canceled -> AuthLaunchResult.Cancelled
+                            else -> AuthLaunchResult.Error(fail.description)
+                        },
+                    )
+                }
+            }
+
+            launch {
+                VKID.instance.authorize(callback)
+            }
+        }
+    }
+
+    private fun AccessToken.toVkTokens(): VkTokens = VkTokens(
+        accessToken = token,
+        refreshToken = null,
+        userId = userID,
+        expiresAtEpochSeconds = expireTime,
+    )
+}

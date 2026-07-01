@@ -29,8 +29,8 @@ alwaysApply: false
 
 ## data-модули
 
-- `*-api` — интерфейсы репозиториев, DTO (без Ktor).
-- `*-impl` — Ktor client, mappers, реализации репозиториев.
+- `*:api` — интерфейсы репозиториев, DTO (без Ktor).
+- `*:impl` — Ktor client, mappers, реализации репозиториев.
 
 ## Пакеты
 
