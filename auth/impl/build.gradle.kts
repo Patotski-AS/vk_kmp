@@ -4,8 +4,6 @@ plugins {
 }
 
 import java.util.Properties
-
-import java.util.Properties
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 kotlin {
