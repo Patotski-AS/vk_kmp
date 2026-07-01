@@ -4,6 +4,7 @@ import com.vk.kmp.auth.api.SessionRepository
 import com.vk.kmp.core.network.applyVkDefaults
 import com.vk.kmp.core.network.createHttpClient
 import io.ktor.client.HttpClient
+import io.ktor.client.plugins.api.ClientPlugin
 import io.ktor.client.plugins.api.Send
 import io.ktor.client.plugins.api.createClientPlugin
 import io.ktor.client.request.HttpRequestBuilder
@@ -21,40 +22,34 @@ internal class VkHttpClientFactory(
 ) {
     fun create(): HttpClient = createHttpClient {
         applyVkDefaults()
-        install(VkAuthPlugin) {
-            this.sessionRepository = sessionRepository
-        }
+        install(createVkAuthPlugin(sessionRepository))
     }
 }
 
-private class VkAuthPluginConfig {
-    lateinit var sessionRepository: SessionRepository
-}
+private fun createVkAuthPlugin(sessionRepository: SessionRepository): ClientPlugin<Unit> =
+    createClientPlugin("VkAuth") {
+        on(Send) { request ->
+            val token = sessionRepository.getValidAccessToken()
+            appendAccessToken(request, token)
 
-private val VkAuthPlugin = createClientPlugin("VkAuth", ::VkAuthPluginConfig) {
-    on(Send) { request ->
-        val repository = pluginConfig.sessionRepository
-        val token = repository.getValidAccessToken()
-        appendAccessToken(request, token)
+            val firstCall = proceed(request)
+            if (!firstCall.response.isAuthFailure()) {
+                return@on firstCall
+            }
 
-        val firstCall = proceed(request)
-        if (!firstCall.response.isAuthFailure()) {
-            return@on firstCall
+            val refreshedToken = runCatching { sessionRepository.refreshAccessToken() }.getOrElse {
+                sessionRepository.logout()
+                return@on firstCall
+            }
+
+            appendAccessToken(request, refreshedToken)
+            val retryCall = proceed(request)
+            if (retryCall.response.isAuthFailure()) {
+                sessionRepository.logout()
+            }
+            retryCall
         }
-
-        val refreshedToken = runCatching { repository.refreshAccessToken() }.getOrElse {
-            repository.logout()
-            return@on firstCall
-        }
-
-        appendAccessToken(request, refreshedToken)
-        val retryCall = proceed(request)
-        if (retryCall.response.isAuthFailure()) {
-            repository.logout()
-        }
-        retryCall
     }
-}
 
 private fun appendAccessToken(request: HttpRequestBuilder, token: String) {
     val currentUrl = request.url.build()
