@@ -14,6 +14,7 @@ import com.vk.kmp.auth.api.SessionRepository
 import com.vk.kmp.auth.impl.authModule
 import com.vk.kmp.core.navigation.DefaultRootComponent
 import com.vk.kmp.core.navigation.RootComponent
+import com.vk.kmp.core.navigation.RootIntent
 import com.vk.kmp.core.ui.VkTheme
 import com.vk.kmp.data.storage.impl.storageModule
 import com.vk.kmp.data.vk.impl.vkDataModule
@@ -58,7 +59,10 @@ private fun RootContent(component: RootComponent) {
     ) { child ->
         when (val instance = child.instance) {
             is RootComponent.Child.Login -> LoginContent(component = instance.component)
-            is RootComponent.Child.Main -> MainContent(component = instance.component)
+            is RootComponent.Child.Main -> MainContent(
+                component = instance.component,
+                onLogout = { component.onIntent(RootIntent.Logout) },
+            )
         }
     }
 }
