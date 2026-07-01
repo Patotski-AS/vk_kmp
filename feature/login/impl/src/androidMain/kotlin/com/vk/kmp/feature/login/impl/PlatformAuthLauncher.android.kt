@@ -31,7 +31,9 @@ internal actual class PlatformAuthLauncher actual constructor(
             val callback = object : VKIDAuthCallback {
                 override fun onAuth(accessToken: AccessToken) {
                     if (continuation.isActive) {
-                        continuation.resume(accessToken.toVkTokens(deviceId))
+                        continuation.resume(
+                            AuthLaunchResult.Success(accessToken.toVkTokens(deviceId)),
+                        )
                     }
                 }
 
