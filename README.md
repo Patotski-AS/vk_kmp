@@ -1,10 +1,22 @@
 # vk_kmp
 
-Kotlin Multiplatform (KMP) проект.
+Kotlin Multiplatform (KMP) пет-проект с VK API.
 
 ## Ветки
 
 | Ветка | Назначение |
 |-------|------------|
-| `create` | Базовая ветка с начальным скелетом проекта |
+| `main` | Стабильная база |
 | `dev` | Активная разработка |
+
+## Документация
+
+- [`plan.md`](plan.md) — архитектура, модули, этапы разработки
+- [`.cursor/rules/`](.cursor/rules/) — правила для Cursor Agent
+
+## Сборка
+
+```bash
+./gradlew :androidApp:assembleDebug
+./gradlew :desktopApp:run
+```

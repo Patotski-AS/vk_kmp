@@ -1,0 +1,54 @@
+---
+description: Auth-модуль — сессия, токены, зоны, refresh, logout
+globs: auth/**/*.kt,feature/login*/**/*.kt,data/storage*/**/*.kt
+alwaysApply: false
+---
+
+# Auth-модуль
+
+**Auth — не экран логина.** Это инфраструктура сессии и переключение зон.
+
+## Разделение ответственности
+
+| Модуль | Что делает |
+|--------|------------|
+| `auth:api` | Контракты: `VkTokens`, `SessionState`, `SessionRepository`, `AuthZoneController`, `AuthResultHandler`, `AuthLauncher` |
+| `auth:impl` | `SessionManager`, `TokenRefresher`, `AuthZoneControllerImpl`, `OAuthClient` (desktop), `LogoutCoordinator` |
+| `feature:login-impl` | UI логина + `PlatformAuthLauncher` (actual per platform) |
+| `data:storage-impl` | Persist токенов (access, refresh, userId, expiresAt) |
+
+## Платформенная стратегия
+
+| Платформа | Вход | Механизм |
+|-----------|------|----------|
+| Android | VK ID SDK | `PlatformAuthLauncher` (actual) |
+| iOS | VK ID SDK | `PlatformAuthLauncher` (actual) |
+| Desktop | OAuth 2.0 + PKCE | `OAuthClient` + `BrowserLauncher` (actual) |
+
+После получения `VkTokens` **все платформы** вызывают `AuthResultHandler.onLoginSuccess()` — дальше только `auth-impl`.
+
+## Token refresh
+
+**Проактивный:** при старте, если `expiresAt - now < threshold` → `Refreshing` → refresh.
+
+**Реактивный:** Ktor interceptor при VK error 5 / 401:
+1. `sessionRepository.getValidAccessToken()` (один `Mutex` на refresh)
+2. retry запроса 1 раз
+3. повторный fail → `logout()`
+
+## Владение токеном
+
+- `storage-impl` — persist
+- `auth-impl` — валидность, refresh, logout, `SessionState`
+- `vk-impl` — **не хранит** токен, берёт через `SessionRepository`
+
+## Desktop особенности
+
+- Нет VK ID SDK → OAuth в `auth-impl`
+- Redirect: `http://127.0.0.1:<port>/callback`
+- Браузер: `java.awt.Desktop.getDesktop().browse(uri)`
+- Хранение: encrypted file / Java Preferences в `storage-impl desktopMain`
+
+## Logout
+
+`sessionRepository.logout()` из любой фичи → очистка storage, отмена запросов, `Unauthenticated` → Root переходит в Login.

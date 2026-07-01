@@ -1,0 +1,73 @@
+---
+description: Gradle, convention plugins, зависимости модулей
+globs: "**/*.gradle.kts,build-logic/**/*.kt,gradle/**"
+alwaysApply: false
+---
+
+# Gradle и сборка
+
+## Convention plugins (`build-logic`)
+
+| Plugin ID | Применять к | Что даёт |
+|-----------|-------------|----------|
+| `vk.kmp.library` | `core:*`, `data:*-api` | KMP + android + ios + desktop targets |
+| `vk.kmp.api` | `*-api` | Минимальный KMP |
+| `vk.cmp.library` | `core:ui` | Compose Multiplatform |
+| `vk.cmp.feature` | `feature:*-impl` | + compose, mvikotlin, decompose |
+| `vk.app` | `app` | Application plugin, все impl |
+
+## Правила
+
+- Новый модуль: добавить в `settings.gradle.kts`, применить правильный convention plugin.
+- Версии — **только** через `gradle/libs.versions.toml` (version catalog).
+- Не дублировать `compileSdk`, `minSdk`, targets — они в convention plugins.
+- Targets: `android`, `iosArm64`, `iosSimulatorArm64`, `jvm("desktop")`.
+
+## Зависимости модулей
+
+```kotlin
+// feature-impl — пример
+dependencies {
+    commonMainImplementation(projects.feature.feed.api)
+    commonMainImplementation(projects.auth.api)
+    commonMainImplementation(projects.data.vk.api)
+    commonMainImplementation(projects.core.ui)
+}
+// НИКОГДА: projects.feature.feed.impl, projects.auth.impl
+```
+
+## app — единственный сборщик impl
+
+```kotlin
+// app/build.gradle.kts
+dependencies {
+    commonMainImplementation(projects.auth.impl)
+    commonMainImplementation(projects.data.storage.impl)
+    commonMainImplementation(projects.data.vk.impl)
+    commonMainImplementation(projects.feature.login.impl)
+    commonMainImplementation(projects.feature.main.impl)
+    commonMainImplementation(projects.feature.feed.impl)
+}
+```
+
+## Koin — порядок модулей
+
+```kotlin
+modules(
+    coreModule,
+    storageImplModule,
+    authImplModule,
+    vkImplModule,
+    loginFeatureModule,
+    mainFeatureModule,
+    feedFeatureModule,
+    appModule,
+)
+```
+
+## Новый модуль — чеклист
+
+1. `settings.gradle.kts` → `include(":...")`
+2. `build.gradle.kts` → convention plugin
+3. Зависимости только на api-модули (кроме app)
+4. Koin module в impl, регистрация в app

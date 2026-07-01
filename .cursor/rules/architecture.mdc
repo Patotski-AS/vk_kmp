@@ -1,0 +1,64 @@
+---
+description: Архитектура модулей, граф зависимостей и границы слоёв
+alwaysApply: true
+---
+
+# Архитектура vk_kmp
+
+## Структура модулей
+
+```
+app/                    # entry point, DI root, RootComponent
+core/                   # common, ui, navigation, network
+auth/                   # api + impl (сессия, зоны, refresh)
+data/                   # storage-*, vk-* (api + impl)
+feature/                # login, main, feed (api + impl)
+build-logic/            # convention plugins
+androidApp/, desktopApp/  # platform entry points
+```
+
+## Правила зависимостей (строго)
+
+1. **feature-модули** зависят только от **api** других модулей, **никогда** от чужих **impl**.
+2. Только модуль **`app`** подключает все **impl** и собирает Koin-граф.
+3. `*-api` модули — минимум зависимостей (`core:common`, для feature-api — Decompose).
+4. `vk-impl` **не хранит токен** — берёт через `SessionRepository` из `auth-api`.
+5. `auth-impl` — инфраструктура сессии; **UI логина** живёт в `feature:login-impl`.
+
+## Граф зависимостей
+
+```
+app → все *-impl + core:*
+
+login-impl  → login-api, auth-api, core:ui
+main-impl   → main-api, feed-api, auth-api, core:ui
+feed-impl   → feed-api, auth-api, data:vk-api, core:ui
+
+auth-impl     → auth-api, storage-api, data:vk-api, core:network
+vk-impl       → vk-api, auth-api, core:network
+storage-impl  → storage-api
+```
+
+## Навигация
+
+```
+RootComponent [:app]
+├─ Unauthorized → LoginComponent [:feature:login]
+└─ Authorized   → MainComponent [:feature:main]
+                    └─ FeedComponent [:feature:feed]  (MVP: один таб)
+```
+
+- Root слушает `AuthZoneController.zone`.
+- Logout: `sessionRepository.logout()` → Root автоматически в Login.
+
+## Main — тонкий shell
+
+`main-impl` содержит только bottom navigation + tab navigator. Каждый таб — отдельный feature-модуль. Без бизнес-логики.
+
+## Новые модули
+
+При добавлении feature:
+1. Создать `feature:<name>-api` и `feature:<name>-impl`.
+2. Контракты (Component, Model, Intent) — в **api**.
+3. Реализация (Component, Store, UI, Koin module) — в **impl**.
+4. Зарегистрировать в `settings.gradle.kts` и подключить impl только в `app`.

@@ -1,0 +1,58 @@
+---
+description: Паттерн feature-модулей — Decompose + MVIKotlin + Compose
+globs: feature/**/*.kt,app/**/*.kt
+alwaysApply: false
+---
+
+# Паттерн feature-модуля
+
+Каждый экран следует трёхслойному паттерну:
+
+| Слой | Где | Роль |
+|------|-----|------|
+| `*Component` | `*-api` (интерфейс) + `*-impl` (реализация) | Decompose: `Value<Model>`, `onIntent()`, навигация по Label |
+| `*Store` | `*-impl` | MVIKotlin: Intent → State → Label |
+| `*Content` | `*-impl` | `@Composable` UI: подписка на state, вызов intents |
+
+## Контракты в *-api
+
+```kotlin
+// feature:<name>-api
+interface FeedComponent {
+    val model: Value<FeedModel>
+    fun onIntent(intent: FeedIntent)
+}
+
+sealed interface FeedIntent { ... }
+data class FeedModel(...)
+```
+
+## Реализация в *-impl
+
+- `Default*Component` implements `*Component`, `ComponentContext by componentContext`
+- `*Store` / `*StoreFactory` — MVIKotlin executor
+- `*Content` — чистый Compose без бизнес-логики
+- `*FeatureModule` — Koin module с factory для Component
+
+## Поток данных (пример feed)
+
+```
+FeedContent (Compose)
+  → FeedComponent.onIntent
+  → FeedStore
+  → UseCase / Repository (только через api-интерфейсы)
+```
+
+## Запрещено
+
+- Импортировать `*-impl` из другого feature-модуля.
+- Класть бизнес-логику в `@Composable`.
+- Обращаться к `SessionRepository` напрямую из UI — только через Component/Store.
+- Добавлять навигацию между фичами внутри feature-impl (навигация — в main или root).
+
+## Feed MVP (первая фича)
+
+- Intent: `Load`, `Refresh`, `LoadMore`
+- State: `posts`, `isLoading`, `isRefreshing`, `error`, `nextOffset`, `endReached`
+- VK API: `wall.get` с `owner_id = текущий userId`
+- Состояния UI: Loading / Error / Empty / Content
