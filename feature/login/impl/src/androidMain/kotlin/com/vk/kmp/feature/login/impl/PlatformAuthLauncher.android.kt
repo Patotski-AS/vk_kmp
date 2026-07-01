@@ -2,6 +2,8 @@ package com.vk.kmp.feature.login.impl
 
 import com.vk.kmp.auth.api.AuthLauncher
 import com.vk.kmp.auth.api.AuthLaunchResult
+import com.vk.kmp.auth.api.VkAppCredentials
+import com.vk.kmp.auth.api.VkOAuthFlow
 import com.vk.kmp.auth.api.VkTokens
 import com.vk.id.AccessToken
 import com.vk.id.VKID
@@ -13,7 +15,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 
-internal actual class PlatformAuthLauncher actual constructor() : AuthLauncher {
+internal actual class PlatformAuthLauncher actual constructor(
+  oauthFlow: VkOAuthFlow,
+  credentials: VkAppCredentials,
+) : AuthLauncher {
     private val stub = StubAuthLauncher()
 
     override suspend fun launch(): AuthLaunchResult = coroutineScope {
@@ -53,5 +58,6 @@ internal actual class PlatformAuthLauncher actual constructor() : AuthLauncher {
         refreshToken = null,
         userId = userID,
         expiresAtEpochSeconds = expireTime,
+        deviceId = null,
     )
 }

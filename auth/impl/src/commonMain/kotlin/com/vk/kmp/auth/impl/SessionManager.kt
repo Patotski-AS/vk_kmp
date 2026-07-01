@@ -14,8 +14,9 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.datetime.Clock
 
-class SessionManager(
+class SessionManager internal constructor(
     private val tokenStorage: TokenStorage,
+    private val tokenRefresher: TokenRefresher,
 ) : SessionRepository, AuthResultHandler, AuthZoneController {
 
     private val mutex = Mutex()
@@ -45,10 +46,7 @@ class SessionManager(
             return tokens.accessToken
         }
 
-        _sessionState.value = SessionState.Refreshing
-        // Token refresh will be implemented in a later phase.
-        updateAuthenticated(tokens.userId, tokens.expiresAtEpochSeconds)
-        return tokens.accessToken
+        return refreshTokens(tokens)
     }
 
     override suspend fun logout() {
@@ -64,6 +62,21 @@ class SessionManager(
         updateAuthenticated(tokens.userId, tokens.expiresAtEpochSeconds)
     }
 
+    private suspend fun refreshTokens(tokens: VkTokens): String {
+        _sessionState.value = SessionState.Refreshing
+        return try {
+            val refreshed = tokenRefresher.refresh(tokens, PkceGeneratorState.next())
+            tokenStorage.saveTokens(refreshed)
+            updateAuthenticated(refreshed.userId, refreshed.expiresAtEpochSeconds)
+            refreshed.accessToken
+        } catch (_: TokenRefreshException) {
+            tokenStorage.clear()
+            _sessionState.value = SessionState.Unauthenticated
+            _zone.value = AuthZone.Unauthorized
+            throw IllegalStateException("Session expired")
+        }
+    }
+
     private fun updateAuthenticated(userId: Long, expiresAtEpochSeconds: Long?) {
         _sessionState.value = SessionState.Authenticated(userId, expiresAtEpochSeconds)
         _zone.value = AuthZone.Authorized
@@ -72,6 +85,18 @@ class SessionManager(
     private fun VkTokens.isValid(): Boolean {
         val expiresAt = expiresAtEpochSeconds ?: return true
         val now = Clock.System.now().epochSeconds
-        return expiresAt > now + 60
+        return expiresAt > now + REFRESH_THRESHOLD_SECONDS
     }
+
+    private companion object {
+        const val REFRESH_THRESHOLD_SECONDS = 60L
+    }
+}
+
+private object PkceGeneratorState {
+    fun next(): String = buildString {
+        repeat(32) { append(ALLOWED.random()) }
+    }
+
+    private val ALLOWED = (('a'..'z') + ('A'..'Z') + ('0'..'9') + listOf('_', '-')).joinToString("")
 }

@@ -9,12 +9,14 @@ internal data class StoredTokens(
     val refreshToken: String?,
     val userId: Long,
     val expiresAtEpochSeconds: Long?,
+    val deviceId: String? = null,
 ) {
     fun toVkTokens(): VkTokens = VkTokens(
         accessToken = accessToken,
         refreshToken = refreshToken,
         userId = userId,
         expiresAtEpochSeconds = expiresAtEpochSeconds,
+        deviceId = deviceId,
     )
 
     companion object {
@@ -23,6 +25,7 @@ internal data class StoredTokens(
             refreshToken = tokens.refreshToken,
             userId = tokens.userId,
             expiresAtEpochSeconds = tokens.expiresAtEpochSeconds,
+            deviceId = tokens.deviceId,
         )
     }
 }

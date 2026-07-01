@@ -9,6 +9,7 @@ private const val KEY_ACCESS_TOKEN = "access_token"
 private const val KEY_REFRESH_TOKEN = "refresh_token"
 private const val KEY_USER_ID = "user_id"
 private const val KEY_EXPIRES_AT = "expires_at"
+private const val KEY_DEVICE_ID = "device_id"
 
 internal class UserDefaultsTokenStorage : TokenStorage {
     private val defaults = NSUserDefaults(suiteName = PREFS_NAME) ?: NSUserDefaults.standardUserDefaults
@@ -22,6 +23,7 @@ internal class UserDefaultsTokenStorage : TokenStorage {
             refreshToken = defaults.stringForKey(KEY_REFRESH_TOKEN),
             userId = userId,
             expiresAtEpochSeconds = expiresAt,
+            deviceId = defaults.stringForKey(KEY_DEVICE_ID),
         )
     }
 
@@ -38,6 +40,11 @@ internal class UserDefaultsTokenStorage : TokenStorage {
         } else {
             defaults.removeObjectForKey(KEY_EXPIRES_AT)
         }
+        if (tokens.deviceId != null) {
+            defaults.setObject(tokens.deviceId, KEY_DEVICE_ID)
+        } else {
+            defaults.removeObjectForKey(KEY_DEVICE_ID)
+        }
         defaults.synchronize()
     }
 
@@ -47,6 +54,7 @@ internal class UserDefaultsTokenStorage : TokenStorage {
             KEY_REFRESH_TOKEN,
             KEY_USER_ID,
             KEY_EXPIRES_AT,
+            KEY_DEVICE_ID,
         ).forEach(defaults::removeObjectForKey)
         defaults.synchronize()
     }
