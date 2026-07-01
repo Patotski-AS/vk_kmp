@@ -37,6 +37,7 @@ enum class AuthZone {
 interface SessionRepository {
     val sessionState: StateFlow<SessionState>
     suspend fun getValidAccessToken(): String
+    suspend fun refreshAccessToken(): String
     suspend fun logout()
 }
 

@@ -42,7 +42,7 @@ private val VkAuthPlugin = createClientPlugin("VkAuth", ::VkAuthPluginConfig) {
             return@on firstCall
         }
 
-        val refreshedToken = runCatching { repository.getValidAccessToken() }.getOrElse {
+        val refreshedToken = runCatching { repository.refreshAccessToken() }.getOrElse {
             repository.logout()
             return@on firstCall
         }

@@ -21,6 +21,6 @@ Xcode-обёртка для iOS с VK ID SDK.
 
 1. Kotlin (`PlatformAuthLauncher.ios`) отправляет notification `VkIdAuthRequested`.
 2. `VkIdAuthHelper.swift` запускает `VKID.shared.authorize`.
-3. Результат возвращается в Kotlin через `completeVkIdIosAuthSuccess/Cancelled/Error`.
+3. Результат возвращается в Kotlin через `Login_implKt.completeVkIdIosAuthSuccess/Cancelled/Error`.
 
 Создайте Xcode-проект `iosApp` (App template), подключите `VkApp.framework` из `app/build/xcode-frameworks/` и добавьте Swift-файлы из этой папки.

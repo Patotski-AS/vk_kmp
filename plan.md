@@ -210,10 +210,10 @@ modules(
 - `feature:login:impl`: UI + Android VK ID SDK
 - Root переключает зоны
 
-### Фаза 3 — iOS + Desktop auth
+### Фаза 3 — iOS + Desktop auth ✅
 - iOS VK ID SDK
 - Desktop OAuth + `BrowserLauncher`
-- `TokenRefresher` + Ktor interceptor
+- `TokenRefresher` + Ktor interceptor (`refreshAccessToken` при 401 / error 5)
 
 ### Фаза 4 — Лента
 - `data:vk:impl`: `wall.get`, DTO, mapper

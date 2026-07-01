@@ -2,6 +2,7 @@ package com.vk.kmp.data.storage.impl
 
 import com.vk.kmp.auth.api.VkTokens
 import com.vk.kmp.data.storage.api.TokenStorage
+import platform.Foundation.NSNumber
 import platform.Foundation.NSUserDefaults
 
 private const val PREFS_NAME = "vk_kmp_tokens"
@@ -16,13 +17,12 @@ internal class UserDefaultsTokenStorage : TokenStorage {
 
     override fun getTokens(): VkTokens? {
         val accessToken = defaults.stringForKey(KEY_ACCESS_TOKEN) ?: return null
-        val userId = defaults.objectForKey(KEY_USER_ID) as? Long ?: return null
-        val expiresAt = defaults.objectForKey(KEY_EXPIRES_AT) as? Long
+        val userId = defaults.longForKey(KEY_USER_ID) ?: return null
         return VkTokens(
             accessToken = accessToken,
             refreshToken = defaults.stringForKey(KEY_REFRESH_TOKEN),
             userId = userId,
-            expiresAtEpochSeconds = expiresAt,
+            expiresAtEpochSeconds = defaults.longForKey(KEY_EXPIRES_AT),
             deviceId = defaults.stringForKey(KEY_DEVICE_ID),
         )
     }
@@ -60,5 +60,13 @@ internal class UserDefaultsTokenStorage : TokenStorage {
             KEY_DEVICE_ID,
         ).forEach(defaults::removeObjectForKey)
         defaults.synchronize()
+    }
+}
+
+private fun NSUserDefaults.longForKey(key: String): Long? {
+    return when (val value = objectForKey(key)) {
+        is NSNumber -> value.longLongValue
+        is Long -> value
+        else -> null
     }
 }

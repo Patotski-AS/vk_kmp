@@ -27,14 +27,19 @@ internal actual class PlatformAuthLauncher actual constructor(
         }
 
         suspendCancellableCoroutine { continuation ->
+            var deviceId: String? = null
             val callback = object : VKIDAuthCallback {
                 override fun onAuth(accessToken: AccessToken) {
                     if (continuation.isActive) {
-                        continuation.resume(AuthLaunchResult.Success(accessToken.toVkTokens()))
+                        continuation.resume(accessToken.toVkTokens(deviceId))
                     }
                 }
 
-                override fun onAuthCode(authCodeData: AuthCodeData, isCompletion: Boolean) = Unit
+                override fun onAuthCode(authCodeData: AuthCodeData, isCompletion: Boolean) {
+                    if (authCodeData.deviceId.isNotBlank()) {
+                        deviceId = authCodeData.deviceId
+                    }
+                }
 
                 override fun onFail(fail: VKIDAuthFail) {
                     if (!continuation.isActive) return
@@ -53,11 +58,11 @@ internal actual class PlatformAuthLauncher actual constructor(
         }
     }
 
-    private fun AccessToken.toVkTokens(): VkTokens = VkTokens(
+    private fun AccessToken.toVkTokens(deviceId: String?): VkTokens = VkTokens(
         accessToken = token,
         refreshToken = null,
         userId = userID,
-        expiresAtEpochSeconds = expireTime,
-        deviceId = null,
+        expiresAtEpochSeconds = expireTime.takeIf { it > 0 },
+        deviceId = deviceId?.takeIf { it.isNotBlank() },
     )
 }

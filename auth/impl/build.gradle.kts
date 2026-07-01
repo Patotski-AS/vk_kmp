@@ -28,6 +28,9 @@ kotlin {
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.content.negotiation)
         }
+        androidMain.dependencies {
+            implementation(libs.vkid)
+        }
         val desktopMain by getting {
             dependencies {
                 implementation(libs.ktor.client.cio)

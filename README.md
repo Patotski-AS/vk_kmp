@@ -54,8 +54,11 @@ vk.client.secret=YOUR_CLIENT_SECRET
 | Desktop | `~/.vk_kmp/tokens.json` |
 | iOS | UserDefaults `vk_kmp_tokens` |
 
-### Фаза 3 — iOS + Desktop auth, refresh
+### Фаза 3 — iOS + Desktop auth, refresh ✅
 
 - **Desktop:** OAuth 2.0 + PKCE через `OAuthClient`, браузер (`java.awt.Desktop.browse`)
-- **iOS:** VK ID SDK через `iosApp` + Kotlin bridge (`VkIdIosAuthBridge`)
-- **Все платформы:** `TokenRefresher` + Ktor interceptor в `vk-impl` (401 / VK error 5 → refresh → retry → logout)
+- **iOS:** VK ID SDK через `iosApp` + Kotlin bridge (`Login_implKt.completeVkIdIosAuth*`)
+- **Все платформы:** `TokenRefresher` + Ktor interceptor в `vk-impl` (401 / VK error 5 → `refreshAccessToken()` → retry → logout)
+- **Android:** refresh через VK ID SDK (`VKID.refreshToken`), если в storage нет `refresh_token`/`device_id`
+
+Следующий этап — **фаза 4** (лента `wall.get`).

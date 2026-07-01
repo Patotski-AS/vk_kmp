@@ -14,6 +14,21 @@ import kotlinx.datetime.Clock
 internal class TokenRefresher(
     private val credentials: VkAppCredentials,
 ) {
+    private val oauthRefresher = OAuthApiTokenRefresher(credentials)
+
+    suspend fun refresh(tokens: VkTokens, state: String): VkTokens =
+        platformRefresh(tokens, state, oauthRefresher)
+}
+
+internal expect suspend fun platformRefresh(
+    tokens: VkTokens,
+    state: String,
+    oauthRefresher: OAuthApiTokenRefresher,
+): VkTokens
+
+internal class OAuthApiTokenRefresher(
+    private val credentials: VkAppCredentials,
+) {
     private val httpClient = createHttpClient {
         applyVkDefaults()
     }

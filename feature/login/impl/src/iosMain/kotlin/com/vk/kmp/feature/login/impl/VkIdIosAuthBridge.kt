@@ -1,3 +1,5 @@
+@file:JvmName("Login_impl")
+
 package com.vk.kmp.feature.login.impl
 
 import com.vk.kmp.auth.api.AuthLaunchResult

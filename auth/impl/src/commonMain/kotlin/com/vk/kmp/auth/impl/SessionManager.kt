@@ -7,9 +7,13 @@ import com.vk.kmp.auth.api.SessionRepository
 import com.vk.kmp.auth.api.SessionState
 import com.vk.kmp.auth.api.VkTokens
 import com.vk.kmp.data.storage.api.TokenStorage
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.datetime.Clock
@@ -20,6 +24,7 @@ class SessionManager internal constructor(
 ) : SessionRepository, AuthResultHandler, AuthZoneController {
 
     private val mutex = Mutex()
+    private val sessionScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     private val _sessionState = MutableStateFlow<SessionState>(SessionState.Unauthenticated)
     override val sessionState: StateFlow<SessionState> = _sessionState.asStateFlow()
@@ -49,6 +54,12 @@ class SessionManager internal constructor(
         return refreshTokens(tokens)
     }
 
+    override suspend fun refreshAccessToken(): String = mutex.withLock {
+        val tokens = tokenStorage.getTokens()
+            ?: throw IllegalStateException("No active session")
+        return refreshTokens(tokens)
+    }
+
     override suspend fun logout() {
         mutex.withLock {
             tokenStorage.clear()
@@ -60,6 +71,12 @@ class SessionManager internal constructor(
     private fun restoreSession() {
         val tokens = tokenStorage.getTokens() ?: return
         updateAuthenticated(tokens.userId, tokens.expiresAtEpochSeconds)
+        if (tokens.isValid()) return
+
+        sessionScope.launch {
+            runCatching { refreshAccessToken() }
+                .onFailure { logout() }
+        }
     }
 
     private suspend fun refreshTokens(tokens: VkTokens): String {

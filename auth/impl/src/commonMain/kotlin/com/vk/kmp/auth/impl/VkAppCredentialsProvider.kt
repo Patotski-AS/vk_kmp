@@ -11,6 +11,7 @@ internal class StaticVkAppCredentials(
     override val isConfigured: Boolean
         get() = id.isNotBlank() &&
             id != "0" &&
+            id != "YOUR_APP_ID" &&
             secret.isNotBlank() &&
             secret != "stub"
 }
