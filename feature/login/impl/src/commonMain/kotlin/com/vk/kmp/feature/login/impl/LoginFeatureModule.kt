@@ -7,7 +7,7 @@ import com.vk.kmp.feature.login.api.LoginComponent
 import org.koin.dsl.module
 
 val loginFeatureModule = module {
-    factory<AuthLauncher> { PlatformAuthLauncher() }
+    factory<AuthLauncher> { PlatformAuthLauncher(get(), get()) }
     factory<LoginComponent> { (componentContext: ComponentContext) ->
         DefaultLoginComponent(
             componentContext = componentContext,

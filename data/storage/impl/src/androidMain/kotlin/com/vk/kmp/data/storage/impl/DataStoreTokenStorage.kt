@@ -21,6 +21,7 @@ private val KEY_ACCESS_TOKEN = stringPreferencesKey("access_token")
 private val KEY_REFRESH_TOKEN = stringPreferencesKey("refresh_token")
 private val KEY_USER_ID = longPreferencesKey("user_id")
 private val KEY_EXPIRES_AT = longPreferencesKey("expires_at")
+private val KEY_DEVICE_ID = stringPreferencesKey("device_id")
 
 internal class DataStoreTokenStorage(
     private val context: Context,
@@ -34,12 +35,14 @@ internal class DataStoreTokenStorage(
             refreshToken = preferences[KEY_REFRESH_TOKEN],
             userId = preferences[KEY_USER_ID] ?: return@runBlocking null,
             expiresAtEpochSeconds = preferences[KEY_EXPIRES_AT],
+            deviceId = preferences[KEY_DEVICE_ID],
         )
     }
 
     override fun saveTokens(tokens: VkTokens) {
         val refreshToken = tokens.refreshToken
         val expiresAt = tokens.expiresAtEpochSeconds
+        val deviceId = tokens.deviceId
         runBlocking(Dispatchers.IO) {
             context.tokenDataStore.edit { preferences ->
                 preferences[KEY_ACCESS_TOKEN] = tokens.accessToken
@@ -53,6 +56,11 @@ internal class DataStoreTokenStorage(
                     preferences[KEY_EXPIRES_AT] = expiresAt
                 } else {
                     preferences.remove(KEY_EXPIRES_AT)
+                }
+                if (deviceId != null) {
+                    preferences[KEY_DEVICE_ID] = deviceId
+                } else {
+                    preferences.remove(KEY_DEVICE_ID)
                 }
             }
         }

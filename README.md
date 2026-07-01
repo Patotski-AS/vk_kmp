@@ -21,9 +21,9 @@ Kotlin Multiplatform (KMP) пет-проект с VK API.
 ./gradlew :desktopApp:run
 ```
 
-## Auth (фаза 2)
+## Auth
 
-### Настройка VK ID (Android)
+### Настройка VK ID (Android / Desktop / iOS)
 
 В `local.properties` в корне проекта:
 
@@ -32,13 +32,17 @@ vk.client.id=YOUR_APP_ID
 vk.client.secret=YOUR_CLIENT_SECRET
 ```
 
-В кабинете VK ID: redirect scheme `vk{APP_ID}`, host `vk.ru`.
+| Платформа | Дополнительно |
+|-----------|---------------|
+| Android | redirect scheme `vk{APP_ID}`, host `vk.ru` |
+| Desktop | redirect `http://127.0.0.1:<port>/callback` в кабинете VK ID; credentials также читаются из `~/.vk_kmp/credentials.properties` или env `VK_CLIENT_ID` / `VK_CLIENT_SECRET` |
+| iOS | `iosApp/iosApp/Info.plist` → `VKClientId`, `VKClientSecret`; см. [`iosApp/README.md`](iosApp/README.md) |
 
 Без credentials сборка и запуск работают через stub-авторизацию.
 
 ### Проверка
 
-1. Login → кнопка «Войти через VK ID» → Main (лента)
+1. Login → «Войти через VK ID» → Main (лента)
 2. Перезапуск приложения → сразу Main (токены сохранены)
 3. «Выйти» на Main → снова Login
 
@@ -50,8 +54,11 @@ vk.client.secret=YOUR_CLIENT_SECRET
 | Desktop | `~/.vk_kmp/tokens.json` |
 | iOS | UserDefaults `vk_kmp_tokens` |
 
-### Не входит в фазу 2 (фаза 3)
+### Фаза 3 — iOS + Desktop auth, refresh ✅
 
-- iOS VK ID SDK, Desktop OAuth
-- `TokenRefresher` + Ktor interceptor
-- Шифрование токенов (secure storage)
+- **Desktop:** OAuth 2.0 + PKCE через `OAuthClient`, браузер (`java.awt.Desktop.browse`)
+- **iOS:** VK ID SDK через `iosApp` + Kotlin bridge (`Login_implKt.completeVkIdIosAuth*`)
+- **Все платформы:** `TokenRefresher` + Ktor interceptor в `vk-impl` (401 / VK error 5 → `refreshAccessToken()` → retry → logout)
+- **Android:** refresh через VK ID SDK (`VKID.refreshToken`), если в storage нет `refresh_token`/`device_id`
+
+Следующий этап — **фаза 4** (лента `wall.get`).

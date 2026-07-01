@@ -7,7 +7,18 @@ data class VkTokens(
     val refreshToken: String?,
     val userId: Long,
     val expiresAtEpochSeconds: Long?,
+    val deviceId: String? = null,
 )
+
+interface VkAppCredentials {
+    val clientId: String
+    val clientSecret: String
+    val isConfigured: Boolean
+}
+
+interface VkOAuthFlow {
+    suspend fun authorize(): AuthLaunchResult
+}
 
 sealed interface SessionState {
     data object Unauthenticated : SessionState
@@ -26,6 +37,7 @@ enum class AuthZone {
 interface SessionRepository {
     val sessionState: StateFlow<SessionState>
     suspend fun getValidAccessToken(): String
+    suspend fun refreshAccessToken(): String
     suspend fun logout()
 }
 
