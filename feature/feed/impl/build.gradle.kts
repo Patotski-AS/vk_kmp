@@ -5,9 +5,9 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            implementation(projects.feature.feedApi)
+            implementation(projects.feature.feed.api)
             implementation(projects.auth.api)
-            implementation(projects.data.vkApi)
+            implementation(projects.data.vk.api)
             implementation(projects.core.ui)
         }
     }

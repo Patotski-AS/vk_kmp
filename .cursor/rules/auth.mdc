@@ -14,8 +14,8 @@ alwaysApply: false
 |--------|------------|
 | `auth:api` | Контракты: `VkTokens`, `SessionState`, `SessionRepository`, `AuthZoneController`, `AuthResultHandler`, `AuthLauncher` |
 | `auth:impl` | `SessionManager`, `TokenRefresher`, `AuthZoneControllerImpl`, `OAuthClient` (desktop), `LogoutCoordinator` |
-| `feature:login-impl` | UI логина + `PlatformAuthLauncher` (actual per platform) |
-| `data:storage-impl` | Persist токенов (access, refresh, userId, expiresAt) |
+| `feature:login:impl` | UI логина + `PlatformAuthLauncher` (actual per platform) |
+| `data:storage:impl` | Persist токенов (access, refresh, userId, expiresAt) |
 
 ## Платформенная стратегия
 
@@ -25,7 +25,7 @@ alwaysApply: false
 | iOS | VK ID SDK | `PlatformAuthLauncher` (actual) |
 | Desktop | OAuth 2.0 + PKCE | `OAuthClient` + `BrowserLauncher` (actual) |
 
-После получения `VkTokens` **все платформы** вызывают `AuthResultHandler.onLoginSuccess()` — дальше только `auth-impl`.
+После получения `VkTokens` **все платформы** вызывают `AuthResultHandler.onLoginSuccess()` — дальше только `auth:impl`.
 
 ## Token refresh
 
@@ -38,16 +38,16 @@ alwaysApply: false
 
 ## Владение токеном
 
-- `storage-impl` — persist
-- `auth-impl` — валидность, refresh, logout, `SessionState`
-- `vk-impl` — **не хранит** токен, берёт через `SessionRepository`
+- `data:storage:impl` — persist
+- `auth:impl` — валидность, refresh, logout, `SessionState`
+- `data:vk:impl` — **не хранит** токен, берёт через `SessionRepository`
 
 ## Desktop особенности
 
-- Нет VK ID SDK → OAuth в `auth-impl`
+- Нет VK ID SDK → OAuth в `auth:impl`
 - Redirect: `http://127.0.0.1:<port>/callback`
 - Браузер: `java.awt.Desktop.getDesktop().browse(uri)`
-- Хранение: encrypted file / Java Preferences в `storage-impl desktopMain`
+- Хранение: encrypted file / Java Preferences в `data:storage:impl desktopMain`
 
 ## Logout
 

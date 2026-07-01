@@ -6,7 +6,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(projects.auth.api)
-            implementation(projects.data.storageApi)
+            implementation(projects.data.storage.api)
             implementation(libs.koin.core)
         }
     }

@@ -5,7 +5,7 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            implementation(projects.data.vkApi)
+            implementation(projects.data.vk.api)
             implementation(projects.auth.api)
             implementation(projects.core.network)
             implementation(libs.koin.core)

@@ -10,14 +10,14 @@ alwaysApply: false
 
 | Слой | Где | Роль |
 |------|-----|------|
-| `*Component` | `*-api` (интерфейс) + `*-impl` (реализация) | Decompose: `Value<Model>`, `onIntent()`, навигация по Label |
-| `*Store` | `*-impl` | MVIKotlin: Intent → State → Label |
-| `*Content` | `*-impl` | `@Composable` UI: подписка на state, вызов intents |
+| `*Component` | `*:api` (интерфейс) + `*:impl` (реализация) | Decompose: `Value<Model>`, `onIntent()`, навигация по Label |
+| `*Store` | `*:impl` | MVIKotlin: Intent → State → Label |
+| `*Content` | `*:impl` | `@Composable` UI: подписка на state, вызов intents |
 
-## Контракты в *-api
+## Контракты в *:api
 
 ```kotlin
-// feature:<name>-api
+// feature:feed:api
 interface FeedComponent {
     val model: Value<FeedModel>
     fun onIntent(intent: FeedIntent)
@@ -27,7 +27,7 @@ sealed interface FeedIntent { ... }
 data class FeedModel(...)
 ```
 
-## Реализация в *-impl
+## Реализация в *:impl
 
 - `Default*Component` implements `*Component`, `ComponentContext by componentContext`
 - `*Store` / `*StoreFactory` — MVIKotlin executor
@@ -45,7 +45,7 @@ FeedContent (Compose)
 
 ## Запрещено
 
-- Импортировать `*-impl` из другого feature-модуля.
+- Импортировать `*:impl` из другого feature-модуля.
 - Класть бизнес-логику в `@Composable`.
 - Обращаться к `SessionRepository` напрямую из UI — только через Component/Store.
 - Добавлять навигацию между фичами внутри feature-impl (навигация — в main или root).

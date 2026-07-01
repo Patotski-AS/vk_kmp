@@ -5,8 +5,8 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            implementation(projects.feature.mainApi)
-            implementation(projects.feature.feedApi)
+            implementation(projects.feature.main.api)
+            implementation(projects.feature.feed.api)
             implementation(projects.core.ui)
         }
     }

@@ -6,7 +6,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(libs.decompose)
-            implementation(projects.feature.feedApi)
+            implementation(projects.feature.feed.api)
         }
     }
 }
