@@ -1,0 +1,57 @@
+# Gradle
+.gradle/
+build/
+**/build/
+
+# Local configuration
+local.properties
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+
+# Kotlin
+.kotlin/
+*.class
+*.jar
+*.war
+*.ear
+
+# Android
+.cxx/
+.externalNativeBuild/
+captures/
+google-services.json
+
+# iOS / Xcode
+iosApp/Pods/
+iosApp/*.xcworkspace
+iosApp/*.xcuserdata
+iosApp/DerivedData/
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Desktop
+desktopApp/.run/
+
+# OS
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+# Logs
+*.log
+
+# Secrets
+.env
+*.keystore
+*.jks
+
+# Project docs (local only)
+docs/
