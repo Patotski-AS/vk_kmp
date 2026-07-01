@@ -5,5 +5,5 @@ import org.koin.dsl.bind
 import org.koin.dsl.module
 
 val storageModule = module {
-    single<TokenStorage> { InMemoryTokenStorage() }
+    single<TokenStorage> { createTokenStorage() }
 }

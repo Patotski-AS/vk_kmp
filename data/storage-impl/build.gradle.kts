@@ -9,5 +9,9 @@ kotlin {
             implementation(projects.auth.api)
             implementation(libs.koin.core)
         }
+        androidMain.dependencies {
+            implementation(libs.androidx.datastore.preferences)
+            implementation(libs.kotlinx.coroutines.android)
+        }
     }
 }

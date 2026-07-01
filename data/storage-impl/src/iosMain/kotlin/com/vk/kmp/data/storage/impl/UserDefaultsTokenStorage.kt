@@ -1,0 +1,53 @@
+package com.vk.kmp.data.storage.impl
+
+import com.vk.kmp.auth.api.VkTokens
+import com.vk.kmp.data.storage.api.TokenStorage
+import platform.Foundation.NSUserDefaults
+
+private const val PREFS_NAME = "vk_kmp_tokens"
+private const val KEY_ACCESS_TOKEN = "access_token"
+private const val KEY_REFRESH_TOKEN = "refresh_token"
+private const val KEY_USER_ID = "user_id"
+private const val KEY_EXPIRES_AT = "expires_at"
+
+internal class UserDefaultsTokenStorage : TokenStorage {
+    private val defaults = NSUserDefaults(suiteName = PREFS_NAME) ?: NSUserDefaults.standardUserDefaults
+
+    override fun getTokens(): VkTokens? {
+        val accessToken = defaults.stringForKey(KEY_ACCESS_TOKEN) ?: return null
+        val userId = defaults.objectForKey(KEY_USER_ID) as? Long ?: return null
+        val expiresAt = defaults.objectForKey(KEY_EXPIRES_AT) as? Long
+        return VkTokens(
+            accessToken = accessToken,
+            refreshToken = defaults.stringForKey(KEY_REFRESH_TOKEN),
+            userId = userId,
+            expiresAtEpochSeconds = expiresAt,
+        )
+    }
+
+    override fun saveTokens(tokens: VkTokens) {
+        defaults.setObject(tokens.accessToken, KEY_ACCESS_TOKEN)
+        if (tokens.refreshToken != null) {
+            defaults.setObject(tokens.refreshToken, KEY_REFRESH_TOKEN)
+        } else {
+            defaults.removeObjectForKey(KEY_REFRESH_TOKEN)
+        }
+        defaults.setObject(tokens.userId, KEY_USER_ID)
+        if (tokens.expiresAtEpochSeconds != null) {
+            defaults.setObject(tokens.expiresAtEpochSeconds, KEY_EXPIRES_AT)
+        } else {
+            defaults.removeObjectForKey(KEY_EXPIRES_AT)
+        }
+        defaults.synchronize()
+    }
+
+    override fun clear() {
+        listOf(
+            KEY_ACCESS_TOKEN,
+            KEY_REFRESH_TOKEN,
+            KEY_USER_ID,
+            KEY_EXPIRES_AT,
+        ).forEach(defaults::removeObjectForKey)
+        defaults.synchronize()
+    }
+}

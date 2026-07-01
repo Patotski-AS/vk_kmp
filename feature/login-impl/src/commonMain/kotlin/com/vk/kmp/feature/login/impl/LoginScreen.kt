@@ -31,7 +31,7 @@ fun LoginScreen(
                 onClick = onLoginClick,
                 modifier = Modifier.padding(top = 16.dp),
             ) {
-                Text(text = "Войти через VK")
+                Text(text = "Войти через VK ID")
             }
         }
         model.error?.let { error ->

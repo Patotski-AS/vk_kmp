@@ -3,7 +3,7 @@ package com.vk.kmp.data.storage.impl
 import com.vk.kmp.auth.api.VkTokens
 import com.vk.kmp.data.storage.api.TokenStorage
 
-class InMemoryTokenStorage : TokenStorage {
+internal class InMemoryTokenStorage : TokenStorage {
     private var tokens: VkTokens? = null
 
     override fun getTokens(): VkTokens? = tokens
