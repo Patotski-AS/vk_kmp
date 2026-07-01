@@ -1,10 +1,10 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.vk.kmp.library)
     alias(libs.plugins.kotlinSerialization)
 }
-
-import java.util.Properties
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 kotlin {
     androidTarget {
