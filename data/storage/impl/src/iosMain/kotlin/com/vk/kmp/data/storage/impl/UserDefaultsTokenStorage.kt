@@ -28,20 +28,23 @@ internal class UserDefaultsTokenStorage : TokenStorage {
     }
 
     override fun saveTokens(tokens: VkTokens) {
+        val refreshToken = tokens.refreshToken
+        val expiresAt = tokens.expiresAtEpochSeconds
+        val deviceId = tokens.deviceId
         defaults.setObject(tokens.accessToken, KEY_ACCESS_TOKEN)
-        if (tokens.refreshToken != null) {
-            defaults.setObject(tokens.refreshToken, KEY_REFRESH_TOKEN)
+        if (refreshToken != null) {
+            defaults.setObject(refreshToken, KEY_REFRESH_TOKEN)
         } else {
             defaults.removeObjectForKey(KEY_REFRESH_TOKEN)
         }
         defaults.setObject(tokens.userId, KEY_USER_ID)
-        if (tokens.expiresAtEpochSeconds != null) {
-            defaults.setObject(tokens.expiresAtEpochSeconds, KEY_EXPIRES_AT)
+        if (expiresAt != null) {
+            defaults.setObject(expiresAt, KEY_EXPIRES_AT)
         } else {
             defaults.removeObjectForKey(KEY_EXPIRES_AT)
         }
-        if (tokens.deviceId != null) {
-            defaults.setObject(tokens.deviceId, KEY_DEVICE_ID)
+        if (deviceId != null) {
+            defaults.setObject(deviceId, KEY_DEVICE_ID)
         } else {
             defaults.removeObjectForKey(KEY_DEVICE_ID)
         }

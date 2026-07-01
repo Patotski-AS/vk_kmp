@@ -5,7 +5,20 @@ plugins {
 
 import java.util.Properties
 
+import java.util.Properties
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 kotlin {
+    androidTarget {
+        compilations.all {
+            compileTaskProvider.configure {
+                compilerOptions {
+                    jvmTarget.set(JvmTarget.JVM_17)
+                }
+            }
+        }
+    }
+
     sourceSets {
         commonMain.dependencies {
             implementation(projects.auth.api)
@@ -26,6 +39,11 @@ kotlin {
 }
 
 android {
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
     buildFeatures {
         buildConfig = true
     }

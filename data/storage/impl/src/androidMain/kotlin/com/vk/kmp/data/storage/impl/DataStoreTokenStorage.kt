@@ -42,6 +42,7 @@ internal class DataStoreTokenStorage(
     override fun saveTokens(tokens: VkTokens) {
         val refreshToken = tokens.refreshToken
         val expiresAt = tokens.expiresAtEpochSeconds
+        val deviceId = tokens.deviceId
         runBlocking(Dispatchers.IO) {
             context.tokenDataStore.edit { preferences ->
                 preferences[KEY_ACCESS_TOKEN] = tokens.accessToken
@@ -56,8 +57,8 @@ internal class DataStoreTokenStorage(
                 } else {
                     preferences.remove(KEY_EXPIRES_AT)
                 }
-                if (tokens.deviceId != null) {
-                    preferences[KEY_DEVICE_ID] = tokens.deviceId
+                if (deviceId != null) {
+                    preferences[KEY_DEVICE_ID] = deviceId
                 } else {
                     preferences.remove(KEY_DEVICE_ID)
                 }
